@@ -47,6 +47,9 @@ android {
                 storeFile = signingConfigs.getByName("debug").storeFile
                 storePassword = signingConfigs.getByName("debug").storePassword
             }
+            isV1SigningEnabled = true
+            isV2SigningEnabled = true
+            isV3SigningEnabled = true
         }
     }
 
