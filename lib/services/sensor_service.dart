@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:math';
+import 'package:flutter/foundation.dart';
 import 'package:sensors_plus/sensors_plus.dart';
 import '../models/emf_reading.dart';
 
@@ -25,9 +26,9 @@ class SensorService {
   // Simulation Parameters
   bool _useSimulation = false;
   SimulationPreset _currentPreset = SimulationPreset.none;
-  double _simBaseX = 40.0; // Earth's baseline
-  double _simBaseY = -15.0;
-  double _simBaseZ = -20.0;
+  final double _simBaseX = 40.0; // Earth's baseline
+  final double _simBaseY = -15.0;
+  final double _simBaseZ = -20.0;
   
   // Custom manual slider inputs
   double _manualSliderX = 0.0;
@@ -111,13 +112,13 @@ class SensorService {
           }
         },
         onError: (error) {
-          print('[SensorService] Magnetometer error: $error. Falling back to simulation.');
+          debugPrint('[SensorService] Magnetometer error: $error. Falling back to simulation.');
           setSimulationMode(true);
         },
         cancelOnError: false,
       );
     } catch (e) {
-      print('[SensorService] Magnetometer exception: $e. Falling back to simulation.');
+      debugPrint('[SensorService] Magnetometer exception: $e. Falling back to simulation.');
       setSimulationMode(true);
     }
   }
@@ -175,7 +176,6 @@ class SensorService {
             break;
             
           case SimulationPreset.none:
-          default:
             // Just standard ambient Earth magnetism
             break;
         }

@@ -45,10 +45,10 @@ class AxisBar extends StatelessWidget {
             child: Container(
               height: 12,
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.04),
+                color: Colors.white.withValues(alpha: 0.04),
                 borderRadius: BorderRadius.circular(6),
                 border: Border.all(
-                  color: Colors.white.withOpacity(0.04),
+                  color: Colors.white.withValues(alpha: 0.04),
                   width: 1,
                 ),
               ),
@@ -67,7 +67,7 @@ class AxisBar extends StatelessWidget {
                           child: Container(
                             width: 1.5,
                             height: 12,
-                            color: Colors.white.withOpacity(0.2),
+                            color: Colors.white.withValues(alpha: 0.2),
                           ),
                         ),
                         
@@ -85,7 +85,7 @@ class AxisBar extends StatelessWidget {
                               boxShadow: isScanning
                                   ? [
                                       BoxShadow(
-                                        color: activeColor.withOpacity(0.4),
+                                        color: activeColor.withValues(alpha: 0.4),
                                         blurRadius: 4,
                                         spreadRadius: 0.5,
                                       )

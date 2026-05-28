@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:math';
 import 'package:audioplayers/audioplayers.dart';
+import 'package:flutter/foundation.dart';
 import 'package:path_provider/path_provider.dart';
 
 class AudioService {
@@ -12,7 +13,6 @@ class AudioService {
   
   Timer? _tickerTimer;
   double _currentIntervalMs = 0.0;
-  DateTime _lastBeepTime = DateTime.now();
 
   AudioService() {
     _initSoundFile();
@@ -42,7 +42,6 @@ class AudioService {
 
       // Wave file properties
       const int sampleRate = 11025;
-      const double duration = 0.02; // 20 milliseconds
       const int numSamples = 220; // 11025 * 0.02 = 220 samples
 
       final List<int> wavBytes = [];
@@ -113,7 +112,7 @@ class AudioService {
       await _audioPlayer?.setSource(DeviceFileSource(_soundFilePath!));
       _initialized = true;
     } catch (e) {
-      print('[AudioService] Failed to synthesize sound file: $e');
+      debugPrint('[AudioService] Failed to synthesize sound file: $e');
     }
   }
 
@@ -125,7 +124,7 @@ class AudioService {
       await _audioPlayer!.seek(Duration.zero);
       await _audioPlayer!.resume();
     } catch (e) {
-      print('[AudioService] Error playing click sound: $e');
+      debugPrint('[AudioService] Error playing click sound: $e');
     }
   }
 

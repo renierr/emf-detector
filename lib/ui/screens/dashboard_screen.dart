@@ -12,9 +12,9 @@ class DashboardScreen extends StatefulWidget {
   final DetectorState state;
 
   const DashboardScreen({
-    Key? key,
+    super.key,
     required this.state,
-  }) : super(key: key);
+  });
 
   @override
   State<DashboardScreen> createState() => _DashboardScreenState();
@@ -74,12 +74,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       radius: 0.8,
                       colors: isWarning
                           ? [
-                              const Color(0xFFFF0055).withOpacity(0.18),
-                              const Color(0xFFFF0055).withOpacity(0.0),
+                              const Color(0xFFFF0055).withValues(alpha: 0.18),
+                              const Color(0xFFFF0055).withValues(alpha: 0.0),
                             ]
                           : [
-                              const Color(0xFF00F2FE).withOpacity(0.12),
-                              const Color(0xFF00F2FE).withOpacity(0.0),
+                              const Color(0xFF00F2FE).withValues(alpha: 0.12),
+                              const Color(0xFF00F2FE).withValues(alpha: 0.0),
                             ],
                     ),
                   ),
@@ -170,7 +170,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF00F2FE).withOpacity(0.12),
+                    color: const Color(0xFF00F2FE).withValues(alpha: 0.12),
                     borderRadius: BorderRadius.circular(4),
                   ),
                   child: Text(
@@ -207,13 +207,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
             decoration: BoxDecoration(
               color: state.isSimulationActive
-                  ? const Color(0xFFFFD200).withOpacity(0.08)
-                  : const Color(0xFF00FF87).withOpacity(0.08),
+                  ? const Color(0xFFFFD200).withValues(alpha: 0.08)
+                  : const Color(0xFF00FF87).withValues(alpha: 0.08),
               borderRadius: BorderRadius.circular(20),
               border: Border.all(
                 color: state.isSimulationActive
-                    ? const Color(0xFFFFD200).withOpacity(0.4)
-                    : const Color(0xFF00FF87).withOpacity(0.4),
+                    ? const Color(0xFFFFD200).withValues(alpha: 0.4)
+                    : const Color(0xFF00FF87).withValues(alpha: 0.4),
                 width: 1,
               ),
             ),
@@ -255,10 +255,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
       margin: const EdgeInsets.only(bottom: 20),
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
-        color: const Color(0xFFFF0055).withOpacity(0.12),
+        color: const Color(0xFFFF0055).withValues(alpha: 0.12),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: const Color(0xFFFF0055).withOpacity(0.4),
+          color: const Color(0xFFFF0055).withValues(alpha: 0.4),
           width: 1.5,
         ),
       ),
@@ -320,7 +320,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               style: ElevatedButton.styleFrom(
                 foregroundColor: const Color(0xFF07080D),
                 backgroundColor: const Color(0xFF00FF87),
-                disabledBackgroundColor: Colors.white.withOpacity(0.04),
+                disabledBackgroundColor: Colors.white.withValues(alpha: 0.04),
                 disabledForegroundColor: Colors.grey[600],
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                 shape: RoundedRectangleBorder(
@@ -333,25 +333,25 @@ class _DashboardScreenState extends State<DashboardScreen> {
             // Reset Button
             OutlinedButton(
               onPressed: state.isScanning && state.isCalibrated ? state.resetBaseline : null,
+              style: OutlinedButton.styleFrom(
+                foregroundColor: Colors.white,
+                disabledForegroundColor: Colors.grey[600],
+                side: BorderSide(
+                  color: state.isScanning && state.isCalibrated 
+                      ? Colors.white.withValues(alpha: 0.3) 
+                      : Colors.white.withValues(alpha: 0.06),
+                ),
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
               child: Text(
                 'RESET',
                 style: GoogleFonts.orbitron(
                   fontSize: 10,
                   fontWeight: FontWeight.bold,
                   letterSpacing: 1,
-                ),
-              ),
-              style: OutlinedButton.styleFrom(
-                foregroundColor: Colors.white,
-                disabledForegroundColor: Colors.grey[600],
-                side: BorderSide(
-                  color: state.isScanning && state.isCalibrated 
-                      ? Colors.white.withOpacity(0.3) 
-                      : Colors.white.withOpacity(0.06),
-                ),
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
                 ),
               ),
             ),
@@ -365,7 +365,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           textAlign: TextAlign.center,
           style: GoogleFonts.outfit(
             fontSize: 10,
-            color: state.isCalibrated ? const Color(0xFF00FF87).withOpacity(0.8) : Colors.grey[600],
+            color: state.isCalibrated ? const Color(0xFF00FF87).withValues(alpha: 0.8) : Colors.grey[600],
           ),
         ),
       ],
@@ -376,10 +376,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.02),
+        color: Colors.white.withValues(alpha: 0.02),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: Colors.white.withOpacity(0.06),
+          color: Colors.white.withValues(alpha: 0.06),
           width: 1,
         ),
       ),
@@ -461,10 +461,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.02),
+        color: Colors.white.withValues(alpha: 0.02),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: Colors.white.withOpacity(0.06),
+          color: Colors.white.withValues(alpha: 0.06),
           width: 1,
         ),
       ),
@@ -490,7 +490,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       borderRadius: BorderRadius.circular(10),
                       boxShadow: [
                         BoxShadow(
-                          color: (state.isScanning ? const Color(0xFFFF0055) : const Color(0xFF00F2FE)).withOpacity(0.3),
+                          color: (state.isScanning ? const Color(0xFFFF0055) : const Color(0xFF00F2FE)).withValues(alpha: 0.3),
                           blurRadius: 8,
                           offset: const Offset(0, 3),
                         )
@@ -576,9 +576,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
               SliderTheme(
                 data: SliderTheme.of(context).copyWith(
                   activeTrackColor: const Color(0xFFFFD200),
-                  inactiveTrackColor: Colors.white.withOpacity(0.08),
+                  inactiveTrackColor: Colors.white.withValues(alpha: 0.08),
                   thumbColor: const Color(0xFFFFD200),
-                  overlayColor: const Color(0xFFFFD200).withOpacity(0.12),
+                  overlayColor: const Color(0xFFFFD200).withValues(alpha: 0.12),
                   trackHeight: 3,
                   thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 7),
                 ),
@@ -613,10 +613,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
               duration: const Duration(milliseconds: 150),
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
-                color: active ? Colors.white.withOpacity(0.08) : Colors.transparent,
+                color: active ? Colors.white.withValues(alpha: 0.08) : Colors.transparent,
                 shape: BoxShape.circle,
                 border: Border.all(
-                  color: active ? Colors.white.withOpacity(0.15) : Colors.white.withOpacity(0.05),
+                  color: active ? Colors.white.withValues(alpha: 0.15) : Colors.white.withValues(alpha: 0.05),
                   width: 1,
                 ),
               ),
@@ -648,7 +648,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       return Container(
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: Colors.white.withOpacity(0.01),
+          color: Colors.white.withValues(alpha: 0.01),
           borderRadius: BorderRadius.circular(12),
         ),
         child: Center(
@@ -677,7 +677,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         color: const Color(0xFF14120E), // Slightly warm developer brown-black
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: const Color(0xFFFFD200).withOpacity(0.15),
+          color: const Color(0xFFFFD200).withValues(alpha: 0.15),
           width: 1,
         ),
       ),
@@ -816,9 +816,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
       ),
       selected: isSelected,
       selectedColor: const Color(0xFFFFD200),
-      backgroundColor: Colors.white.withOpacity(0.04),
+      backgroundColor: Colors.white.withValues(alpha: 0.04),
       side: BorderSide(
-        color: isSelected ? const Color(0xFFFFD200) : Colors.white.withOpacity(0.08),
+        color: isSelected ? const Color(0xFFFFD200) : Colors.white.withValues(alpha: 0.08),
         width: 1,
       ),
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
@@ -852,8 +852,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
           Expanded(
             child: SliderTheme(
               data: SliderTheme.of(context).copyWith(
-                activeTrackColor: const Color(0xFFFFD200).withOpacity(0.7),
-                inactiveTrackColor: Colors.white.withOpacity(0.04),
+                activeTrackColor: const Color(0xFFFFD200).withValues(alpha: 0.7),
+                inactiveTrackColor: Colors.white.withValues(alpha: 0.04),
                 thumbColor: const Color(0xFFFFD200),
                 trackHeight: 1.5,
                 thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 4.5),

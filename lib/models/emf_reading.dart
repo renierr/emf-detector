@@ -23,7 +23,7 @@ class EmfReading {
     this.baselineY = 0.0,
     this.baselineZ = 0.0,
     DateTime? timestamp,
-  }) : this.timestamp = timestamp ?? DateTime.now();
+  }) : timestamp = timestamp ?? DateTime.now();
 
   /// Creates a reading from raw x, y, z magnetometer components in microteslas (uT).
   ///

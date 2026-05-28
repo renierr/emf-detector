@@ -42,7 +42,7 @@ class DetectorState extends ChangeNotifier {
     // and automatically enable simulated mode so the app is fully interactable.
     _initialSignalTimeout = Timer(const Duration(milliseconds: 1500), () {
       if (!_hasPhysicalSignal) {
-        print('[DetectorState] No physical magnetometer signal detected. Activating simulator.');
+        debugPrint('[DetectorState] No physical magnetometer signal detected. Activating simulator.');
         setSimulationMode(true);
         setSimulationPreset(SimulationPreset.ambientNoise);
       }

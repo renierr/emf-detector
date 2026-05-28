@@ -63,8 +63,8 @@ class CircularGauge extends StatelessWidget {
                           ? [
                               Shadow(
                                 color: isWarning
-                                    ? const Color(0xFFFF0055).withOpacity(0.5)
-                                    : const Color(0xFF00F2FE).withOpacity(0.5),
+                                    ? const Color(0xFFFF0055).withValues(alpha: 0.5)
+                                    : const Color(0xFF00F2FE).withValues(alpha: 0.5),
                                 blurRadius: 15,
                               )
                             ]
@@ -89,7 +89,7 @@ class CircularGauge extends StatelessWidget {
                     fontWeight: FontWeight.w500,
                     letterSpacing: 1.0,
                     color: isScanning 
-                        ? (isWarning ? const Color(0xFFFF0055).withOpacity(0.7) : const Color(0xFF00F2FE).withOpacity(0.7))
+                        ? (isWarning ? const Color(0xFFFF0055).withValues(alpha: 0.7) : const Color(0xFF00F2FE).withValues(alpha: 0.7))
                         : Colors.grey[600],
                   ),
                 ),
@@ -98,10 +98,10 @@ class CircularGauge extends StatelessWidget {
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFFF0055).withOpacity(0.15),
+                      color: const Color(0xFFFF0055).withValues(alpha: 0.15),
                       borderRadius: BorderRadius.circular(10),
                       border: Border.all(
-                        color: const Color(0xFFFF0055).withOpacity(0.4),
+                        color: const Color(0xFFFF0055).withValues(alpha: 0.4),
                         width: 1,
                       ),
                     ),
@@ -152,7 +152,7 @@ class _GaugePainter extends CustomPainter {
     final ambientPaint = Paint()
       ..style = PaintingStyle.stroke
       ..strokeWidth = 2.0
-      ..color = Colors.white.withOpacity(0.04);
+      ..color = Colors.white.withValues(alpha: 0.04);
     canvas.drawCircle(center, radius + 8, ambientPaint);
 
     // 2. Draw background track
@@ -160,7 +160,7 @@ class _GaugePainter extends CustomPainter {
       ..style = PaintingStyle.stroke
       ..strokeWidth = 10.0
       ..strokeCap = StrokeCap.round
-      ..color = Colors.white.withOpacity(0.06);
+      ..color = Colors.white.withValues(alpha: 0.06);
     
     canvas.drawArc(
       Rect.fromCircle(center: center, radius: radius),
@@ -219,7 +219,7 @@ class _GaugePainter extends CustomPainter {
     final thresholdPaint = Paint()
       ..style = PaintingStyle.stroke
       ..strokeWidth = 3.0
-      ..color = const Color(0xFFFF0055).withOpacity(0.8);
+      ..color = const Color(0xFFFF0055).withValues(alpha: 0.8);
 
     // Small radial notch for the threshold
     final tx1 = center.dx + (radius - 12) * cos(thresholdAngle);
@@ -254,7 +254,7 @@ class _GaugePainter extends CustomPainter {
           tickColor = const Color(0xFF00F2FE); // Cyan
         }
       } else {
-        tickColor = Colors.white.withOpacity(0.15);
+        tickColor = Colors.white.withValues(alpha: 0.15);
       }
 
       final isMajor = i % 5 == 0;
