@@ -10,7 +10,7 @@ class AudioService {
   String? _soundFilePath;
   bool _initialized = false;
   bool _isEnabled = false;
-  
+
   Timer? _tickerTimer;
   double _currentIntervalMs = 0.0;
 
@@ -38,11 +38,20 @@ class AudioService {
       await _audioPlayer?.setReleaseMode(ReleaseMode.stop);
 
       final tempDir = await getTemporaryDirectory();
-      final file = File('${tempDir.path}/emf_geiger_tick.wav');
+      final file = File(
+        '${tempDir.path}${Platform.pathSeparator}emf_geiger_tick.wav',
+      );
 
-      // Wave file properties
-      const int sampleRate = 11025;
-      const int numSamples = 220; // 11025 * 0.02 = 220 samples
+      // Wave file properties: Upgrade to 16-bit PCM at 44.1kHz to guarantee compatibility
+      // on both Windows (WASAPI) and all physical Android devices.
+      const int sampleRate = 44100;
+      const int numSamples = 882; // 44100 * 0.02 = 882 samples (20ms click)
+      const int bitsPerSample = 16;
+      const int blockAlign = 2; // 1 channel * 16 bits / 8 = 2 bytes
+      const int byteRate = sampleRate * blockAlign; // 88200 bytes/sec
+      const int subchunk2size =
+          numSamples * blockAlign; // 1764 bytes of PCM data
+      final int fileSize = 36 + subchunk2size; // 1800 bytes total file size
 
       final List<int> wavBytes = [];
 
@@ -50,8 +59,6 @@ class AudioService {
       // 1. RIFF Identifier
       wavBytes.addAll([0x52, 0x49, 0x46, 0x46]); // "RIFF"
       // 2. Size (36 + subchunk2size)
-      final int subchunk2size = numSamples; // 8-bit mono has 1 byte per sample
-      final int fileSize = 36 + subchunk2size;
       wavBytes.addAll([
         fileSize & 0xFF,
         (fileSize >> 8) & 0xFF,
@@ -66,22 +73,22 @@ class AudioService {
       wavBytes.addAll([16, 0, 0, 0]); // Subchunk1Size = 16
       wavBytes.addAll([1, 0]); // AudioFormat = 1 (PCM)
       wavBytes.addAll([1, 0]); // NumChannels = 1 (Mono)
-      // SampleRate = 11025
+      // SampleRate (44100)
       wavBytes.addAll([
         sampleRate & 0xFF,
         (sampleRate >> 8) & 0xFF,
         (sampleRate >> 16) & 0xFF,
         (sampleRate >> 24) & 0xFF,
       ]);
-      // ByteRate = SampleRate * NumChannels * BitsPerSample / 8 = 11025 * 1 * 8 / 8 = 11025
+      // ByteRate (88200)
       wavBytes.addAll([
-        sampleRate & 0xFF,
-        (sampleRate >> 8) & 0xFF,
-        (sampleRate >> 16) & 0xFF,
-        (sampleRate >> 24) & 0xFF,
+        byteRate & 0xFF,
+        (byteRate >> 8) & 0xFF,
+        (byteRate >> 16) & 0xFF,
+        (byteRate >> 24) & 0xFF,
       ]);
-      wavBytes.addAll([1, 0]); // BlockAlign = 1
-      wavBytes.addAll([8, 0]); // BitsPerSample = 8
+      wavBytes.addAll([blockAlign, 0]); // BlockAlign = 2
+      wavBytes.addAll([bitsPerSample, 0]); // BitsPerSample = 16
 
       // Subchunk 2 (data)
       wavBytes.addAll([0x64, 0x61, 0x74, 0x61]); // "data"
@@ -96,18 +103,27 @@ class AudioService {
       const double frequency = 1800.0; // 1.8 kHz sharp beep
       for (int i = 0; i < numSamples; i++) {
         final double t = i / sampleRate;
-        // Exponential decay envelope makes it sound like a "tick" instead of a flat beep
-        final double envelope = exp(-t * 220.0); 
+        // Exponential decay envelope makes it sound like a tight "tick"
+        final double envelope = exp(-t * 220.0);
         final double sine = sin(2 * pi * frequency * t);
-        
-        // Convert range [-1.0, 1.0] to unsigned 8-bit [0, 255]
-        final int sampleVal = (128 + 110 * envelope * sine).round().clamp(0, 255);
-        wavBytes.add(sampleVal);
+
+        // Convert to 16-bit signed integer [-32768, 32767]
+        final int sampleVal = (32767 * envelope * sine).round().clamp(
+          -32768,
+          32767,
+        );
+
+        // Write little-endian bytes
+        wavBytes.add(sampleVal & 0xFF);
+        wavBytes.add((sampleVal >> 8) & 0xFF);
       }
 
       await file.writeAsBytes(wavBytes, flush: true);
-      _soundFilePath = file.path;
-      
+      _soundFilePath = file.absolute.path;
+      debugPrint(
+        '[AudioService] Geiger-click WAV successfully synthesized and saved at: $_soundFilePath',
+      );
+
       // Warm up source loading
       await _audioPlayer?.setSource(DeviceFileSource(_soundFilePath!));
       _initialized = true;
@@ -120,9 +136,10 @@ class AudioService {
   Future<void> playTick() async {
     if (!_initialized || _soundFilePath == null || _audioPlayer == null) return;
     try {
-      // Re-trigger playback by seeking to beginning and resuming
-      await _audioPlayer!.seek(Duration.zero);
-      await _audioPlayer!.resume();
+      // Direct play is much more reliable and faster than seek-resume on desktop/mobile backends.
+      // Calling stop() first immediately resets the player status, eliminating async seek delays.
+      await _audioPlayer!.stop();
+      await _audioPlayer!.play(DeviceFileSource(_soundFilePath!));
     } catch (e) {
       debugPrint('[AudioService] Error playing click sound: $e');
     }
@@ -130,7 +147,7 @@ class AudioService {
 
   /// Dynamically updates the beeper interval based on the current EMF delta reading
   /// relative to the warning threshold.
-  /// 
+  ///
   /// - Below 5 uT: No beep (silent background)
   /// - 5 uT to Threshold: Slow pacing ticks (from 1.5 seconds down to 300ms)
   /// - Above Threshold: Rapid alarm-like ticking (from 300ms down to 45ms)
@@ -165,13 +182,16 @@ class AudioService {
 
   void _startTickerLoop() {
     _tickerTimer?.cancel();
-    _tickerTimer = Timer.periodic(Duration(milliseconds: _currentIntervalMs.round()), (timer) {
-      if (!_isEnabled) {
-        timer.cancel();
-        return;
-      }
-      playTick();
-    });
+    _tickerTimer = Timer.periodic(
+      Duration(milliseconds: _currentIntervalMs.round()),
+      (timer) {
+        if (!_isEnabled) {
+          timer.cancel();
+          return;
+        }
+        playTick();
+      },
+    );
   }
 
   void dispose() {

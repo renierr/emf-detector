@@ -11,12 +11,14 @@ void main() {
   final detectorState = DetectorState();
 
   // Configure high-tech fullscreen status and navigation bar styling
-  SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
-    statusBarColor: Colors.transparent,
-    statusBarIconBrightness: Brightness.light,
-    systemNavigationBarColor: Color(0xFF07080D),
-    systemNavigationBarIconBrightness: Brightness.light,
-  ));
+  SystemChrome.setSystemUIOverlayStyle(
+    const SystemUiOverlayStyle(
+      statusBarColor: Colors.transparent,
+      statusBarIconBrightness: Brightness.light,
+      systemNavigationBarColor: Color(0xFF07080D),
+      systemNavigationBarIconBrightness: Brightness.light,
+    ),
+  );
 
   // Lock mobile orientation in portrait mode for scanning consistency
   SystemChrome.setPreferredOrientations([
@@ -30,10 +32,7 @@ void main() {
 class MyApp extends StatefulWidget {
   final DetectorState state;
 
-  const MyApp({
-    super.key,
-    required this.state,
-  });
+  const MyApp({super.key, required this.state});
 
   @override
   State<MyApp> createState() => _MyAppState();

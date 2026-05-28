@@ -2,7 +2,7 @@
 
 Welcome, AI Developer! This playbook provides the technical rules, architectural guardrails, and design aesthetics for maintaining and scaling the **EMF Detector & Wall Cable Scanner** codebase.
 
-For detailed math vector formulas, synthesized WAV headers, stream simulation values, and reusable widgets specifications, refer to [AGENTS.detail.md](file:///C:/dev/flutter/emf-detector/AGENTS.detail.md).
+For detailed math vector formulas, synthesized WAV headers, stream simulation values, and reusable widgets specifications, refer to [AGENTS.detail.md](AGENTS.detail.md).
 
 ---
 
@@ -79,4 +79,3 @@ For detailed math vector formulas, synthesized WAV headers, stream simulation va
 
 1. **Formatting**: `dart format ./lib`
 2. **Analysis**: `flutter analyze`
-3. **Testing**: `flutter test`

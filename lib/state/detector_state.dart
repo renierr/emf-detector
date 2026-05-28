@@ -36,13 +36,15 @@ class DetectorState extends ChangeNotifier {
   DetectorState() {
     // Start listening to the stream
     _emfSubscription = _sensorService.emfStream.listen(_onNewReading);
-    
+
     // Auto-detect if physical magnetometer is missing or silent.
     // If we get no signals within 1.5 seconds, we assume we are in an emulator/Windows
     // and automatically enable simulated mode so the app is fully interactable.
     _initialSignalTimeout = Timer(const Duration(milliseconds: 1500), () {
       if (!_hasPhysicalSignal) {
-        debugPrint('[DetectorState] No physical magnetometer signal detected. Activating simulator.');
+        debugPrint(
+          '[DetectorState] No physical magnetometer signal detected. Activating simulator.',
+        );
         setSimulationMode(true);
         setSimulationPreset(SimulationPreset.ambientNoise);
       }
@@ -53,11 +55,12 @@ class DetectorState extends ChangeNotifier {
   bool get isScanning => _isScanning;
   EmfReading? get currentReading => _currentReading;
   List<double> get history => _history;
-  
+
   double get baselineX => _baselineX;
   double get baselineY => _baselineY;
   double get baselineZ => _baselineZ;
-  bool get isCalibrated => _baselineX != 0.0 || _baselineY != 0.0 || _baselineZ != 0.0;
+  bool get isCalibrated =>
+      _baselineX != 0.0 || _baselineY != 0.0 || _baselineZ != 0.0;
 
   double get warningThreshold => _warningThreshold;
   bool get soundEnabled => _soundEnabled;
@@ -69,14 +72,14 @@ class DetectorState extends ChangeNotifier {
   /// Toggles the sensor scanning on/off.
   void toggleScanning() {
     _isScanning = !_isScanning;
-    
+
     if (!_isScanning) {
       // Pause beeper if scanning stops
       _audioService.setEnabled(false);
     } else {
       _audioService.setEnabled(_soundEnabled);
     }
-    
+
     notifyListeners();
   }
 
@@ -89,10 +92,14 @@ class DetectorState extends ChangeNotifier {
     _baselineZ = _currentReading!.z;
 
     _sensorService.setBaseline(_baselineX, _baselineY, _baselineZ);
-    
+
     // Apply immediately to current reading to avoid UI jumpiness
     if (_currentReading != null) {
-      _currentReading = _currentReading!.withBaseline(_baselineX, _baselineY, _baselineZ);
+      _currentReading = _currentReading!.withBaseline(
+        _baselineX,
+        _baselineY,
+        _baselineZ,
+      );
     }
 
     notifyListeners();
@@ -154,7 +161,7 @@ class DetectorState extends ChangeNotifier {
     _initialSignalTimeout?.cancel();
 
     if (!_isScanning) {
-      // Still update the current reading (visual display of idle state), 
+      // Still update the current reading (visual display of idle state),
       // but do not add to history or play sounds.
       _currentReading = rawReading;
       notifyListeners();
@@ -168,9 +175,15 @@ class DetectorState extends ChangeNotifier {
       smoothedY = rawReading.y;
       smoothedZ = rawReading.z;
     } else {
-      smoothedX = _currentReading!.x + _smoothingFactor * (rawReading.x - _currentReading!.x);
-      smoothedY = _currentReading!.y + _smoothingFactor * (rawReading.y - _currentReading!.y);
-      smoothedZ = _currentReading!.z + _smoothingFactor * (rawReading.z - _currentReading!.z);
+      smoothedX =
+          _currentReading!.x +
+          _smoothingFactor * (rawReading.x - _currentReading!.x);
+      smoothedY =
+          _currentReading!.y +
+          _smoothingFactor * (rawReading.y - _currentReading!.y);
+      smoothedZ =
+          _currentReading!.z +
+          _smoothingFactor * (rawReading.z - _currentReading!.z);
     }
 
     _currentReading = EmfReading.fromRaw(
@@ -191,13 +204,14 @@ class DetectorState extends ChangeNotifier {
     // Trigger acoustic beeper ticks speed based on strength
     if (_soundEnabled) {
       _audioService.updateSignalStrength(
-        _currentReading!.deltaMagnitude, 
+        _currentReading!.deltaMagnitude,
         _warningThreshold,
       );
     }
 
     // Trigger haptic vibration on mobile devices during spikes
-    if (_hapticsEnabled && _currentReading!.deltaMagnitude >= _warningThreshold) {
+    if (_hapticsEnabled &&
+        _currentReading!.deltaMagnitude >= _warningThreshold) {
       // Trigger a light tactile warning pulse when over the threshold
       _triggerHapticPulse(_currentReading!.deltaMagnitude);
     }

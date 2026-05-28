@@ -57,16 +57,20 @@ class CircularGauge extends StatelessWidget {
                       color: !isScanning
                           ? Colors.grey[600]
                           : isWarning
-                              ? const Color(0xFFFF0055) // Cyberpunk warning pink
-                              : const Color(0xFF00F2FE), // Cyan standard
+                          ? const Color(0xFFFF0055) // Cyberpunk warning pink
+                          : const Color(0xFF00F2FE), // Cyan standard
                       shadows: isScanning
                           ? [
                               Shadow(
                                 color: isWarning
-                                    ? const Color(0xFFFF0055).withValues(alpha: 0.5)
-                                    : const Color(0xFF00F2FE).withValues(alpha: 0.5),
+                                    ? const Color(
+                                        0xFFFF0055,
+                                      ).withValues(alpha: 0.5)
+                                    : const Color(
+                                        0xFF00F2FE,
+                                      ).withValues(alpha: 0.5),
                                 blurRadius: 15,
-                              )
+                              ),
                             ]
                           : null,
                     ),
@@ -88,15 +92,20 @@ class CircularGauge extends StatelessWidget {
                     fontSize: 10,
                     fontWeight: FontWeight.w500,
                     letterSpacing: 1.0,
-                    color: isScanning 
-                        ? (isWarning ? const Color(0xFFFF0055).withValues(alpha: 0.7) : const Color(0xFF00F2FE).withValues(alpha: 0.7))
+                    color: isScanning
+                        ? (isWarning
+                              ? const Color(0xFFFF0055).withValues(alpha: 0.7)
+                              : const Color(0xFF00F2FE).withValues(alpha: 0.7))
                         : Colors.grey[600],
                   ),
                 ),
                 if (isScanning && isWarning) ...[
                   const SizedBox(height: 8),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 3,
+                    ),
                     decoration: BoxDecoration(
                       color: const Color(0xFFFF0055).withValues(alpha: 0.15),
                       borderRadius: BorderRadius.circular(10),
@@ -115,7 +124,7 @@ class CircularGauge extends StatelessWidget {
                       ),
                     ),
                   ),
-                ]
+                ],
               ],
             ),
           ],
@@ -161,7 +170,7 @@ class _GaugePainter extends CustomPainter {
       ..strokeWidth = 10.0
       ..strokeCap = StrokeCap.round
       ..color = Colors.white.withValues(alpha: 0.06);
-    
+
     canvas.drawArc(
       Rect.fromCircle(center: center, radius: radius),
       startAngle,
@@ -207,7 +216,11 @@ class _GaugePainter extends CustomPainter {
       ..strokeWidth = 18.0
       ..strokeCap = StrokeCap.round
       ..shader = gradient.createShader(rect)
-      ..imageFilter = ImageFilter.blur(sigmaX: 8.0, sigmaY: 8.0, tileMode: TileMode.decal);
+      ..imageFilter = ImageFilter.blur(
+        sigmaX: 8.0,
+        sigmaY: 8.0,
+        tileMode: TileMode.decal,
+      );
 
     if (percentage > 0) {
       canvas.drawArc(rect, startAngle, sweepAngle, false, glowPaint);
@@ -232,7 +245,14 @@ class _GaugePainter extends CustomPainter {
     _drawTicks(canvas, center, radius, startAngle, totalSweep, percentage);
   }
 
-  void _drawTicks(Canvas canvas, Offset center, double radius, double startAngle, double totalSweep, double activePercentage) {
+  void _drawTicks(
+    Canvas canvas,
+    Offset center,
+    double radius,
+    double startAngle,
+    double totalSweep,
+    double activePercentage,
+  ) {
     const numTicks = 31;
     final tickPaint = Paint()..strokeWidth = 1.5;
 

@@ -6,9 +6,9 @@ import '../models/emf_reading.dart';
 
 enum SimulationPreset {
   none,
-  mainsCable,    // Simulated AC electrical current (oscillating fields)
-  strongMagnet,  // High DC magnetic field offset
-  ambientNoise,  // Normal fluctuating environmental fields
+  mainsCable, // Simulated AC electrical current (oscillating fields)
+  strongMagnet, // High DC magnetic field offset
+  ambientNoise, // Normal fluctuating environmental fields
 }
 
 class SensorService {
@@ -29,7 +29,7 @@ class SensorService {
   final double _simBaseX = 40.0; // Earth's baseline
   final double _simBaseY = -15.0;
   final double _simBaseZ = -20.0;
-  
+
   // Custom manual slider inputs
   double _manualSliderX = 0.0;
   double _manualSliderY = 0.0;
@@ -65,7 +65,7 @@ class SensorService {
   void setSimulationMode(bool enable) {
     if (_useSimulation == enable) return;
     _useSimulation = enable;
-    
+
     if (_useSimulation) {
       _sensorSubscription?.cancel();
       _sensorSubscription = null;
@@ -93,7 +93,7 @@ class SensorService {
 
   void _startSensorStream() {
     _sensorSubscription?.cancel();
-    
+
     try {
       _sensorSubscription = magnetometerEventStream().listen(
         (MagnetometerEvent event) {
@@ -112,13 +112,17 @@ class SensorService {
           }
         },
         onError: (error) {
-          debugPrint('[SensorService] Magnetometer error: $error. Falling back to simulation.');
+          debugPrint(
+            '[SensorService] Magnetometer error: $error. Falling back to simulation.',
+          );
           setSimulationMode(true);
         },
         cancelOnError: false,
       );
     } catch (e) {
-      debugPrint('[SensorService] Magnetometer exception: $e. Falling back to simulation.');
+      debugPrint(
+        '[SensorService] Magnetometer exception: $e. Falling back to simulation.',
+      );
       setSimulationMode(true);
     }
   }
@@ -126,7 +130,9 @@ class SensorService {
   void _startSimulationStream() {
     _simulationTimer?.cancel();
     // Simulate events at ~30Hz (every 33 milliseconds)
-    _simulationTimer = Timer.periodic(const Duration(milliseconds: 33), (timer) {
+    _simulationTimer = Timer.periodic(const Duration(milliseconds: 33), (
+      timer,
+    ) {
       if (!_useSimulation) return;
 
       _time += 0.033;
@@ -152,7 +158,7 @@ class SensorService {
         switch (_currentPreset) {
           case SimulationPreset.mainsCable:
             // Simulate 50/60 Hz AC current.
-            // Magnetic field oscillates rapidly. Since we sample at 30Hz, 
+            // Magnetic field oscillates rapidly. Since we sample at 30Hz,
             // we'll get an aliased but highly dynamic sine wave peak.
             // Let's create an alternating magnetic field overlay.
             final acWave = 85.0 * sin(_time * 12.0); // Large oscillation
@@ -160,21 +166,21 @@ class SensorService {
             ry += acWave * 0.5;
             rz += acWave * 0.2;
             break;
-            
+
           case SimulationPreset.strongMagnet:
             // Simulate proximity of a permanent neodymium magnet (large DC offset)
             rx += 180.0;
             ry += -80.0;
             rz += 120.0;
             break;
-            
+
           case SimulationPreset.ambientNoise:
             // Dynamic moving drift (simulating walking past electrical boxes)
             rx += sin(_time * 0.5) * 15.0;
             ry += cos(_time * 0.3) * 10.0;
             rz += sin(_time * 0.2) * 8.0;
             break;
-            
+
           case SimulationPreset.none:
             // Just standard ambient Earth magnetism
             break;

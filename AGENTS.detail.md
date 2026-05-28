@@ -117,3 +117,29 @@ To preserve high performance and ensure cyberpunk visual layout consistency, dev
   ```
   This creates fluid liquid transitions for wave peaks instead of coarse polygonal segments.
 * **Alert Marker**: A dotted horizontal warning line drawn using a custom dashed path loop that tracks the safety threshold value relative to the vertical chart axis.
+
+---
+
+## 5. Responsive UI Layout & Text Wrapping Rules
+
+To prevent rendering overflows and ensure all views scale gracefully down to very narrow smartphone screens (e.g. 320px or less):
+
+### The Flutter Text Wrap Paradox
+In Flutter, layout is governed by the rule: **Constraints go down, sizes go up, and parent sets position.**
+By default, horizontal layout widgets like `Row` offer their children **infinite** horizontal space on their layout axis. Because a `Text` widget has no internal knowledge of screen boundaries unless those boundaries are explicitly *imposed* on it, a raw `Text` inside a `Row` will attempt to render on a single continuous line, stretching indefinitely and causing an overflow exception on small screens.
+
+### Mandatory Directives for AI Agents
+1. **Force Constraints Inside Rows**: Always wrap any potentially long `Text` inside a `Row` with an `Expanded` or `Flexible` widget. This forces the layout engine to calculate remaining screen width, imposing constraints that compel the `Text` to wrap gracefully.
+2. **Use Wrap over Row for Spaced Flow**: For headers, action options, and lists of badges/controls (e.g. a panel of toggle buttons), prefer using a `Wrap` widget instead of a `Row`. Set standard `spacing` and `runSpacing` properties to let controls drop to the next line dynamically:
+   ```dart
+   Wrap(
+     spacing: 8.0,
+     runSpacing: 12.0,
+     alignment: WrapAlignment.spaceEvenly,
+     children: [ ... ],
+   )
+   ```
+3. **Isolate Button Icons in Multi-Row / Small Viewports**: To ensure button text has maximum space to wrap symmetrically without getting clipped or misaligned by inline graphic elements:
+   - Never embed emojis or raw icon code directly inside a button `Text` string.
+   - Use a `Stack` or structured bounding box to pin button icons to the absolute edge (e.g. `left: 16`), combined with `Padding(horizontal: 46.0)` on the centered `Text` child to allow symmetric multi-line text wrapping without overlapping.
+

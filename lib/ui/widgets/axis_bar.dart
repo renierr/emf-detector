@@ -21,7 +21,9 @@ class AxisBar extends StatelessWidget {
     // Normalize value ratio between -1.0 and 1.0
     final double ratio = (value / maxExpected).clamp(-1.0, 1.0);
     final String sign = value >= 0 ? '+' : '';
-    final String valueText = isScanning ? '$sign${value.toStringAsFixed(1)}' : '0.0';
+    final String valueText = isScanning
+        ? '$sign${value.toStringAsFixed(1)}'
+        : '0.0';
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 6.0),
@@ -39,7 +41,7 @@ class AxisBar extends StatelessWidget {
               ),
             ),
           ),
-          
+
           // Bidirectional strength bar
           Expanded(
             child: Container(
@@ -70,7 +72,7 @@ class AxisBar extends StatelessWidget {
                             color: Colors.white.withValues(alpha: 0.2),
                           ),
                         ),
-                        
+
                         // Active colored bar
                         Positioned(
                           left: ratio < 0 ? center - barWidth : center,
@@ -80,15 +82,19 @@ class AxisBar extends StatelessWidget {
                           child: AnimatedContainer(
                             duration: const Duration(milliseconds: 100),
                             decoration: BoxDecoration(
-                              color: isScanning ? activeColor : Colors.grey[800],
+                              color: isScanning
+                                  ? activeColor
+                                  : Colors.grey[800],
                               borderRadius: BorderRadius.circular(3),
                               boxShadow: isScanning
                                   ? [
                                       BoxShadow(
-                                        color: activeColor.withValues(alpha: 0.4),
+                                        color: activeColor.withValues(
+                                          alpha: 0.4,
+                                        ),
                                         blurRadius: 4,
                                         spreadRadius: 0.5,
-                                      )
+                                      ),
                                     ]
                                   : null,
                             ),
@@ -101,9 +107,9 @@ class AxisBar extends StatelessWidget {
               ),
             ),
           ),
-          
+
           const SizedBox(width: 12),
-          
+
           // Digital numeric readout
           SizedBox(
             width: 60,

@@ -6,7 +6,7 @@ class EmfReading {
   final double y;
   final double z;
   final double magnitude;
-  
+
   // Baseline values (calibration offset)
   final double baselineX;
   final double baselineY;
@@ -53,8 +53,8 @@ class EmfReading {
   double get deltaY => y - baselineY;
   double get deltaZ => z - baselineZ;
 
-  /// The true vector delta magnitude. This measures the net change in the 
-  /// magnetic vector from the calibrated state. This is highly effective 
+  /// The true vector delta magnitude. This measures the net change in the
+  /// magnetic vector from the calibrated state. This is highly effective
   /// for wire/stud scanning because it eliminates background ambient fields.
   double get deltaMagnitude {
     final dx = deltaX;

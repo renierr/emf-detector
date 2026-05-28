@@ -90,11 +90,11 @@ class _OscilloscopePainter extends CustomPainter {
 
     for (int i = 0; i < history.length; i++) {
       final double x = startOffset + (i * stepX);
-      
+
       // Calculate normalized height (upside-down on canvas, 0 is top, height is bottom)
       // Clamp values between 0 and maxVal for safety
       final valRatio = (history[i] / maxVal).clamp(0.0, 1.0);
-      
+
       // Keep some padding at top and bottom of the chart
       final double y = size.height - 8 - (valRatio * (size.height - 16));
       points.add(Offset(x, y));
@@ -109,7 +109,7 @@ class _OscilloscopePainter extends CustomPainter {
     for (int i = 0; i < points.length - 1; i++) {
       final p1 = points[i];
       final p2 = points[i + 1];
-      
+
       // Control points for smooth quadratic/cubic interpolation
       final xc = (p1.dx + p2.dx) / 2;
       final yc = (p1.dy + p2.dy) / 2;
@@ -158,7 +158,8 @@ class _OscilloscopePainter extends CustomPainter {
       ..style = PaintingStyle.stroke
       ..strokeWidth = 6.0
       ..strokeCap = StrokeCap.round
-      ..color = (hasWarning ? const Color(0xFFFF0055) : const Color(0xFF00F2FE)).withValues(alpha: 0.4)
+      ..color = (hasWarning ? const Color(0xFFFF0055) : const Color(0xFF00F2FE))
+          .withValues(alpha: 0.4)
       ..imageFilter = ImageFilter.blur(sigmaX: 4.0, sigmaY: 4.0);
 
     canvas.drawPath(path, glowPaint);
@@ -169,11 +170,12 @@ class _OscilloscopePainter extends CustomPainter {
     final pulsePaint = Paint()
       ..style = PaintingStyle.fill
       ..color = hasWarning ? const Color(0xFFFF0055) : const Color(0xFF00FF87);
-    
+
     final pulseOuterPaint = Paint()
       ..style = PaintingStyle.stroke
       ..strokeWidth = 1.5
-      ..color = (hasWarning ? const Color(0xFFFF0055) : const Color(0xFF00FF87)).withValues(alpha: 0.6);
+      ..color = (hasWarning ? const Color(0xFFFF0055) : const Color(0xFF00FF87))
+          .withValues(alpha: 0.6);
 
     canvas.drawCircle(latestPoint, 4.0, pulsePaint);
     canvas.drawCircle(latestPoint, 8.0, pulseOuterPaint);
@@ -184,7 +186,8 @@ class _OscilloscopePainter extends CustomPainter {
 
   void _drawGrid(Canvas canvas, Size size) {
     final gridPaint = Paint()
-      ..color = const Color(0xFF00F2FE).withValues(alpha: 0.03) // Very faint cyan grid lines
+      ..color = const Color(0xFF00F2FE)
+          .withValues(alpha: 0.03) // Very faint cyan grid lines
       ..strokeWidth = 0.8;
 
     // Horizontal grid lines

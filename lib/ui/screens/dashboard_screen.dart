@@ -11,10 +11,7 @@ import '../widgets/axis_bar.dart';
 class DashboardScreen extends StatefulWidget {
   final DetectorState state;
 
-  const DashboardScreen({
-    super.key,
-    required this.state,
-  });
+  const DashboardScreen({super.key, required this.state});
 
   @override
   State<DashboardScreen> createState() => _DashboardScreenState();
@@ -22,15 +19,43 @@ class DashboardScreen extends StatefulWidget {
 
 class _DashboardScreenState extends State<DashboardScreen> {
   bool _wakeLockActive = false;
+  bool _automaticallyTurnedOnWakelock = false;
 
   @override
   void initState() {
     super.initState();
     _checkWakeLock();
+    widget.state.addListener(_onStateChange);
+  }
+
+  @override
+  void dispose() {
+    widget.state.removeListener(_onStateChange);
+    super.dispose();
+  }
+
+  void _onStateChange() {
+    if (!mounted) return;
+    if (widget.state.isScanning && !_wakeLockActive) {
+      WakelockPlus.enable();
+      setState(() {
+        _wakeLockActive = true;
+        _automaticallyTurnedOnWakelock = true;
+      });
+    } else if (!widget.state.isScanning && _wakeLockActive) {
+      if (_automaticallyTurnedOnWakelock) {
+        WakelockPlus.disable();
+        setState(() {
+          _wakeLockActive = false;
+          _automaticallyTurnedOnWakelock = false;
+        });
+      }
+    }
   }
 
   void _checkWakeLock() async {
     final active = await WakelockPlus.enabled;
+    if (!mounted) return;
     setState(() {
       _wakeLockActive = active;
     });
@@ -43,8 +68,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
     } else {
       await WakelockPlus.disable();
     }
+    if (!mounted) return;
     setState(() {
       _wakeLockActive = target;
+      _automaticallyTurnedOnWakelock = false;
     });
   }
 
@@ -55,7 +82,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
       builder: (context, child) {
         final state = widget.state;
         final current = state.currentReading ?? EmfReading.fromRaw(0, 0, 0);
-        final isWarning = state.isScanning && current.deltaMagnitude >= state.warningThreshold;
+        final isWarning =
+            state.isScanning &&
+            current.deltaMagnitude >= state.warningThreshold;
 
         return Scaffold(
           backgroundColor: const Color(0xFF07080D), // Ultra-deep space black
@@ -89,7 +118,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
               SafeArea(
                 child: SingleChildScrollView(
                   physics: const BouncingScrollPhysics(),
-                  padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 16.0),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 20.0,
+                    vertical: 16.0,
+                  ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
@@ -149,26 +181,34 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Widget _buildHeader(DetectorState state) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    return Wrap(
+      alignment: WrapAlignment.spaceBetween,
+      crossAxisAlignment: WrapCrossAlignment.center,
+      spacing: 12,
+      runSpacing: 10,
       children: [
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
+            Wrap(
+              crossAxisAlignment: WrapCrossAlignment.center,
+              spacing: 6,
+              runSpacing: 4,
               children: [
                 Text(
                   '⚡ EMF SCANNER',
                   style: GoogleFonts.orbitron(
-                    fontSize: 20,
+                    fontSize: 18, // Adjusted down slightly to fit small screens
                     fontWeight: FontWeight.w900,
-                    letterSpacing: 1.5,
+                    letterSpacing: 1.2,
                     color: Colors.white,
                   ),
                 ),
-                const SizedBox(width: 6),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 6,
+                    vertical: 2,
+                  ),
                   decoration: BoxDecoration(
                     color: const Color(0xFF00F2FE).withValues(alpha: 0.12),
                     borderRadius: BorderRadius.circular(4),
@@ -188,9 +228,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
             Text(
               'WALL CURRENT & CURRENT LOCATOR',
               style: GoogleFonts.outfit(
-                fontSize: 10,
+                fontSize: 9, // Adjusted down slightly
                 fontWeight: FontWeight.w600,
-                letterSpacing: 2.0,
+                letterSpacing:
+                    1.0, // Reduced letter spacing to prevent overflow
                 color: Colors.grey[500],
               ),
             ),
@@ -302,8 +343,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Widget _buildCalibrationRow(DetectorState state, EmfReading current) {
     return Column(
       children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
+        Wrap(
+          alignment: WrapAlignment.center,
+          spacing: 12,
+          runSpacing: 10,
           children: [
             // Calibrate Button
             ElevatedButton.icon(
@@ -322,26 +365,33 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 backgroundColor: const Color(0xFF00FF87),
                 disabledBackgroundColor: Colors.white.withValues(alpha: 0.04),
                 disabledForegroundColor: Colors.grey[600],
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 12,
+                ),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(8),
                 ),
               ),
             ),
-            const SizedBox(width: 12),
-            
+
             // Reset Button
             OutlinedButton(
-              onPressed: state.isScanning && state.isCalibrated ? state.resetBaseline : null,
+              onPressed: state.isScanning && state.isCalibrated
+                  ? state.resetBaseline
+                  : null,
               style: OutlinedButton.styleFrom(
                 foregroundColor: Colors.white,
                 disabledForegroundColor: Colors.grey[600],
                 side: BorderSide(
-                  color: state.isScanning && state.isCalibrated 
-                      ? Colors.white.withValues(alpha: 0.3) 
+                  color: state.isScanning && state.isCalibrated
+                      ? Colors.white.withValues(alpha: 0.3)
                       : Colors.white.withValues(alpha: 0.06),
                 ),
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 12,
+                ),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(8),
                 ),
@@ -365,7 +415,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
           textAlign: TextAlign.center,
           style: GoogleFonts.outfit(
             fontSize: 10,
-            color: state.isCalibrated ? const Color(0xFF00FF87).withValues(alpha: 0.8) : Colors.grey[600],
+            color: state.isCalibrated
+                ? const Color(0xFF00FF87).withValues(alpha: 0.8)
+                : Colors.grey[600],
           ),
         ),
       ],
@@ -386,8 +438,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          Wrap(
+            alignment: WrapAlignment.spaceBetween,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            spacing: 12,
+            runSpacing: 6,
             children: [
               Text(
                 '3-AXIS VECTOR READOUT',
@@ -403,7 +458,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 style: GoogleFonts.orbitron(
                   fontSize: 9,
                   fontWeight: FontWeight.bold,
-                  color: state.isScanning ? const Color(0xFF00F2FE) : Colors.grey[600],
+                  color: state.isScanning
+                      ? const Color(0xFF00F2FE)
+                      : Colors.grey[600],
                 ),
               ),
             ],
@@ -433,8 +490,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Widget _buildOscilloscopeHeader() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    return Wrap(
+      alignment: WrapAlignment.spaceBetween,
+      crossAxisAlignment: WrapCrossAlignment.center,
+      spacing: 12,
+      runSpacing: 6,
       children: [
         Text(
           'SCROLLING OSCILLOSCOPE',
@@ -485,27 +545,53 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       gradient: LinearGradient(
                         colors: state.isScanning
                             ? [const Color(0xFFFF0055), const Color(0xFF9D50BB)]
-                            : [const Color(0xFF00F2FE), const Color(0xFF4FACFE)],
+                            : [
+                                const Color(0xFF00F2FE),
+                                const Color(0xFF4FACFE),
+                              ],
                       ),
                       borderRadius: BorderRadius.circular(10),
                       boxShadow: [
                         BoxShadow(
-                          color: (state.isScanning ? const Color(0xFFFF0055) : const Color(0xFF00F2FE)).withValues(alpha: 0.3),
+                          color:
+                              (state.isScanning
+                                      ? const Color(0xFFFF0055)
+                                      : const Color(0xFF00F2FE))
+                                  .withValues(alpha: 0.3),
                           blurRadius: 8,
                           offset: const Offset(0, 3),
-                        )
+                        ),
                       ],
                     ),
-                    child: Center(
-                      child: Text(
-                        state.isScanning ? '⚡ STOP SCANNING' : '🔍 START SCANNING',
-                        style: GoogleFonts.orbitron(
-                          fontSize: 13,
-                          fontWeight: FontWeight.bold,
-                          letterSpacing: 1.5,
-                          color: Colors.white,
+                    child: Stack(
+                      alignment: Alignment.center,
+                      children: [
+                        Positioned(
+                          left: 16,
+                          child: Icon(
+                            state.isScanning
+                                ? Icons.stop_circle_outlined
+                                : Icons.sensors_outlined,
+                            color: Colors.white,
+                            size: 18,
+                          ),
                         ),
-                      ),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 46.0),
+                          child: Text(
+                            state.isScanning
+                                ? 'STOP SCANNING'
+                                : 'START SCANNING',
+                            textAlign: TextAlign.center,
+                            style: GoogleFonts.orbitron(
+                              fontSize: 13,
+                              fontWeight: FontWeight.bold,
+                              letterSpacing: 1.5,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ),
@@ -515,8 +601,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
           const SizedBox(height: 20),
 
           // Toggles and sliders row
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
+          Wrap(
+            alignment: WrapAlignment.spaceEvenly,
+            runAlignment: WrapAlignment.center,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            spacing: 8,
+            runSpacing: 12,
             children: [
               // Sound Toggle
               _buildFeedbackButton(
@@ -536,22 +626,27 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
               // Wake lock toggle
               _buildFeedbackButton(
-                icon: _wakeLockActive ? Icons.screen_lock_rotation : Icons.screen_rotation,
+                icon: _wakeLockActive
+                    ? Icons.screen_lock_rotation
+                    : Icons.screen_rotation,
                 label: 'SCREEN ON',
                 active: _wakeLockActive,
                 onTap: _toggleWakeLock,
               ),
             ],
           ),
-          
+
           const Divider(color: Colors.white10, height: 28),
 
           // Alert threshold slider
           Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              Wrap(
+                alignment: WrapAlignment.spaceBetween,
+                crossAxisAlignment: WrapCrossAlignment.center,
+                spacing: 12,
+                runSpacing: 6,
                 children: [
                   Text(
                     'CABLE TRIGGER THRESHOLD',
@@ -580,7 +675,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   thumbColor: const Color(0xFFFFD200),
                   overlayColor: const Color(0xFFFFD200).withValues(alpha: 0.12),
                   trackHeight: 3,
-                  thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 7),
+                  thumbShape: const RoundSliderThumbShape(
+                    enabledThumbRadius: 7,
+                  ),
                 ),
                 child: Slider(
                   value: state.warningThreshold,
@@ -613,10 +710,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
               duration: const Duration(milliseconds: 150),
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
-                color: active ? Colors.white.withValues(alpha: 0.08) : Colors.transparent,
+                color: active
+                    ? Colors.white.withValues(alpha: 0.08)
+                    : Colors.transparent,
                 shape: BoxShape.circle,
                 border: Border.all(
-                  color: active ? Colors.white.withValues(alpha: 0.15) : Colors.white.withValues(alpha: 0.05),
+                  color: active
+                      ? Colors.white.withValues(alpha: 0.15)
+                      : Colors.white.withValues(alpha: 0.05),
                   width: 1,
                 ),
               ),
@@ -663,9 +764,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 letterSpacing: 0.5,
               ),
             ),
-            style: TextButton.styleFrom(
-              foregroundColor: Colors.grey[500],
-            ),
+            style: TextButton.styleFrom(foregroundColor: Colors.grey[500]),
           ),
         ),
       );
@@ -684,8 +783,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          Wrap(
+            alignment: WrapAlignment.spaceBetween,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            spacing: 12,
+            runSpacing: 6,
             children: [
               Text(
                 '🛠️ DEVELOPER SIMULATION LAB',
@@ -726,17 +828,32 @@ class _DashboardScreenState extends State<DashboardScreen> {
             runSpacing: 6,
             children: [
               _buildPresetChip(state, SimulationPreset.none, 'Earth Normal'),
-              _buildPresetChip(state, SimulationPreset.mainsCable, 'Mains Wire (AC)'),
-              _buildPresetChip(state, SimulationPreset.strongMagnet, 'Magnet Proximity'),
-              _buildPresetChip(state, SimulationPreset.ambientNoise, 'Walk Drift (Drift)'),
+              _buildPresetChip(
+                state,
+                SimulationPreset.mainsCable,
+                'Mains Wire (AC)',
+              ),
+              _buildPresetChip(
+                state,
+                SimulationPreset.strongMagnet,
+                'Magnet Proximity',
+              ),
+              _buildPresetChip(
+                state,
+                SimulationPreset.ambientNoise,
+                'Walk Drift (Drift)',
+              ),
             ],
           ),
-          
+
           const Divider(color: Colors.white10, height: 24),
-          
+
           // Manual Slider Overrides
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          Wrap(
+            alignment: WrapAlignment.spaceBetween,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            spacing: 12,
+            runSpacing: 4,
             children: [
               Text(
                 'MANUAL X, Y, Z VECTOR ADJUSTMENTS',
@@ -754,7 +871,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     fontWeight: FontWeight.bold,
                     color: const Color(0xFF00FF87),
                   ),
-                )
+                ),
             ],
           ),
           const SizedBox(height: 6),
@@ -764,9 +881,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
             onChanged: (val) {
               state.setSimulationPreset(SimulationPreset.none);
               state.setManualSimulationValues(
-                val, 
-                state.currentReading?.y ?? 0.0, 
-                state.currentReading?.z ?? 0.0
+                val,
+                state.currentReading?.y ?? 0.0,
+                state.currentReading?.z ?? 0.0,
               );
             },
           ),
@@ -776,9 +893,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
             onChanged: (val) {
               state.setSimulationPreset(SimulationPreset.none);
               state.setManualSimulationValues(
-                state.currentReading?.x ?? 0.0, 
-                val, 
-                state.currentReading?.z ?? 0.0
+                state.currentReading?.x ?? 0.0,
+                val,
+                state.currentReading?.z ?? 0.0,
               );
             },
           ),
@@ -788,9 +905,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
             onChanged: (val) {
               state.setSimulationPreset(SimulationPreset.none);
               state.setManualSimulationValues(
-                state.currentReading?.x ?? 0.0, 
-                state.currentReading?.y ?? 0.0, 
-                val
+                state.currentReading?.x ?? 0.0,
+                state.currentReading?.y ?? 0.0,
+                val,
               );
             },
           ),
@@ -800,9 +917,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Widget _buildPresetChip(
-    DetectorState state, 
-    SimulationPreset preset, 
-    String label
+    DetectorState state,
+    SimulationPreset preset,
+    String label,
   ) {
     final isSelected = state.currentPreset == preset;
     return ChoiceChip(
@@ -818,7 +935,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
       selectedColor: const Color(0xFFFFD200),
       backgroundColor: Colors.white.withValues(alpha: 0.04),
       side: BorderSide(
-        color: isSelected ? const Color(0xFFFFD200) : Colors.white.withValues(alpha: 0.08),
+        color: isSelected
+            ? const Color(0xFFFFD200)
+            : Colors.white.withValues(alpha: 0.08),
         width: 1,
       ),
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
@@ -843,20 +962,21 @@ class _DashboardScreenState extends State<DashboardScreen> {
             width: 50,
             child: Text(
               label,
-              style: GoogleFonts.outfit(
-                fontSize: 9,
-                color: Colors.grey[400],
-              ),
+              style: GoogleFonts.outfit(fontSize: 9, color: Colors.grey[400]),
             ),
           ),
           Expanded(
             child: SliderTheme(
               data: SliderTheme.of(context).copyWith(
-                activeTrackColor: const Color(0xFFFFD200).withValues(alpha: 0.7),
+                activeTrackColor: const Color(
+                  0xFFFFD200,
+                ).withValues(alpha: 0.7),
                 inactiveTrackColor: Colors.white.withValues(alpha: 0.04),
                 thumbColor: const Color(0xFFFFD200),
                 trackHeight: 1.5,
-                thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 4.5),
+                thumbShape: const RoundSliderThumbShape(
+                  enabledThumbRadius: 4.5,
+                ),
               ),
               child: Slider(
                 value: value.clamp(-150.0, 150.0),
