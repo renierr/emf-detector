@@ -2,6 +2,8 @@
 
 Welcome, AI Developer! This playbook provides the technical rules, architectural guardrails, and design aesthetics for maintaining and scaling the **EMF Detector & Wall Cable Scanner** codebase.
 
+For detailed math vector formulas, synthesized WAV headers, stream simulation values, and reusable widgets specifications, refer to [AGENTS.detail.md](file:///C:/dev/flutter/emf-detector/AGENTS.detail.md).
+
 ---
 
 ## Priority Model
@@ -17,10 +19,12 @@ Welcome, AI Developer! This playbook provides the technical rules, architectural
 - Never mention AI agents, co-authorship, or AI generation in commit messages or code.
 - **Resilience to Rejected Commands**: If a user rejects or stops a command execution, continue the task and provide the alternative results or plan. A rejected command must not abort the overall execution.
 - **State Management & Data Flow**: Always channel sensor configurations, calibration offsets, alert states, and history logs through `DetectorState` in `lib/state/detector_state.dart`. Never update local state variables in views for persistent data.
-- **Smooth Custom Painters**: High-frequency visual updates (e.g. radial dials, oscilloscopeScrolling lines) must be handled by `CustomPainter` canvases with hardware acceleration. Do not use standard widgets or layout rebuilds for frequent visual updates.
+- **Smooth Custom Painters**: High-frequency visual updates (e.g. radial dials, oscilloscope lines) must be handled by `CustomPainter` canvases with hardware acceleration. Do not use standard widgets or layout rebuilds for frequent visual updates.
 - **Mock Simulation Fallbacks**: Always maintain the interactive **Simulated Sensor Mode** for desktop execution (Windows) or emulators. The app must detect silent sensors and fall back to simulation to keep the UI fully testable.
 - **Small Screen Fitting**: Always use responsive layouts (like `Wrap` instead of horizontal `Row` for actions, and scrollable/grid metrics) in dashboard cards and dialog panels to prevent overflow on mobile.
 - **Prevent Duplicated UI/Painter Code**: Extract custom visual structures, grid drawers, neon gradients, or warning alerts to `lib/ui/widgets/` immediately. Never copy-paste presentation logic across views.
+- **No Dialog Snackbars**: Never show `ScaffoldMessenger` snackbars inside modal dialogs (as they render behind the active dialog). Use custom center-placed alert overlays or inline widgets.
+- **Strict Input Validation**: Enforce numeric restrictions on any numeric input fields (like threshold settings) using `FilteringTextInputFormatter.digitsOnly` to prevent parsing crashes.
 
 ---
 
@@ -35,6 +39,7 @@ Welcome, AI Developer! This playbook provides the technical rules, architectural
 - **Private Widgets over Helpers**: Prefer declaring private `StatelessWidget` classes instead of helper methods returning `Widget` to optimize element tree lifecycles and rebuilds.
 - **Const Constructors**: Prefer using `const` constructors for widgets and in `build()` methods where possible to reduce rebuilds.
 - **Bézier Curves over Segment Lines**: Prefer smooth quadratic/cubic Bézier curve pathing for real-time oscilloscope waves to maintain high premium graphical quality.
+- **Context-Driven Date Formats**: Prefer retrieving device-driven locale tags to format dates (such as scanner logs) dynamically rather than hardcoding date layouts: `Localizations.localeOf(context).toLanguageTag()`.
 
 ---
 
