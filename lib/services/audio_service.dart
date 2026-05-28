@@ -1,13 +1,10 @@
 import 'dart:async';
-import 'dart:io';
 import 'dart:math';
-import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/foundation.dart';
-import 'package:path_provider/path_provider.dart';
+import 'package:flutter_soloud/flutter_soloud.dart';
 
 class AudioService {
-  AudioPlayer? _audioPlayer;
-  String? _soundFilePath;
+  AudioSource? _audioSource;
   bool _initialized = false;
   bool _isEnabled = false;
 
@@ -29,29 +26,27 @@ class AudioService {
     }
   }
 
-  /// Synthesizes a tiny 20ms Geiger-counter click WAV file and writes it to disk.
-  /// This bypasses standard asset bundling, making it completely self-contained.
+  /// Synthesizes a Geiger-counter click WAV file in-memory and loads it into SoLoud.
   Future<void> _initSoundFile() async {
     try {
-      _audioPlayer = AudioPlayer();
-      // Configure audio player for low latency
-      await _audioPlayer?.setReleaseMode(ReleaseMode.stop);
+      // 1. Initialize the SoLoud engine if it isn't already initialized
+      if (!SoLoud.instance.isInitialized) {
+        await SoLoud.instance.init();
+      }
 
-      final tempDir = await getTemporaryDirectory();
-      final file = File(
-        '${tempDir.path}${Platform.pathSeparator}emf_geiger_tick.wav',
-      );
-
-      // Wave file properties: Upgrade to 16-bit PCM at 44.1kHz to guarantee compatibility
-      // on both Windows (WASAPI) and all physical Android devices.
-      const int sampleRate = 44100;
-      const int numSamples = 882; // 44100 * 0.02 = 882 samples (20ms click)
+      // Wave file properties: 16-bit PCM at 48kHz with a 200ms duration.
+      // A longer duration (200ms vs 20ms) satisfies native OS media player buffer size requirements
+      // and warm-up latencies, preventing silent playbacks.
+      // We use 48,000 Hz sample rate to match the standard native Windows mixing rate of SoLoud.
+      const int sampleRate = 48000;
+      const int numSamples =
+          9600; // 48000 * 0.2 = 9600 samples (200ms click duration)
       const int bitsPerSample = 16;
       const int blockAlign = 2; // 1 channel * 16 bits / 8 = 2 bytes
-      const int byteRate = sampleRate * blockAlign; // 88200 bytes/sec
+      const int byteRate = sampleRate * blockAlign; // 96000 bytes/sec
       const int subchunk2size =
-          numSamples * blockAlign; // 1764 bytes of PCM data
-      final int fileSize = 36 + subchunk2size; // 1800 bytes total file size
+          numSamples * blockAlign; // 19200 bytes of PCM data
+      final int fileSize = 36 + subchunk2size; // 19236 bytes total file size
 
       final List<int> wavBytes = [];
 
@@ -73,14 +68,14 @@ class AudioService {
       wavBytes.addAll([16, 0, 0, 0]); // Subchunk1Size = 16
       wavBytes.addAll([1, 0]); // AudioFormat = 1 (PCM)
       wavBytes.addAll([1, 0]); // NumChannels = 1 (Mono)
-      // SampleRate (44100)
+      // SampleRate (48000)
       wavBytes.addAll([
         sampleRate & 0xFF,
         (sampleRate >> 8) & 0xFF,
         (sampleRate >> 16) & 0xFF,
         (sampleRate >> 24) & 0xFF,
       ]);
-      // ByteRate (88200)
+      // ByteRate (96000)
       wavBytes.addAll([
         byteRate & 0xFF,
         (byteRate >> 8) & 0xFF,
@@ -118,28 +113,30 @@ class AudioService {
         wavBytes.add((sampleVal >> 8) & 0xFF);
       }
 
-      await file.writeAsBytes(wavBytes, flush: true);
-      _soundFilePath = file.absolute.path;
+      final byteData = Uint8List.fromList(wavBytes);
       debugPrint(
-        '[AudioService] Geiger-click WAV successfully synthesized and saved at: $_soundFilePath',
+        '[AudioService] Geiger-click WAV successfully synthesized in-memory. Bytes: ${byteData.length}',
       );
 
-      // Warm up source loading
-      await _audioPlayer?.setSource(DeviceFileSource(_soundFilePath!));
+      // Load sound into SoLoud audio engine directly from memory
+      _audioSource = await SoLoud.instance.loadMem(
+        'emf_geiger_tick.wav',
+        byteData,
+      );
       _initialized = true;
+      debugPrint(
+        '[AudioService] SoLoud successfully loaded WAV from memory: $_audioSource',
+      );
     } catch (e) {
-      debugPrint('[AudioService] Failed to synthesize sound file: $e');
+      debugPrint('[AudioService] Failed to initialize SoLoud sound file: $e');
     }
   }
 
   /// Triggers a single instant tick sound.
   Future<void> playTick() async {
-    if (!_initialized || _soundFilePath == null || _audioPlayer == null) return;
+    if (!_initialized || _audioSource == null) return;
     try {
-      // Direct play is much more reliable and faster than seek-resume on desktop/mobile backends.
-      // Calling stop() first immediately resets the player status, eliminating async seek delays.
-      await _audioPlayer!.stop();
-      await _audioPlayer!.play(DeviceFileSource(_soundFilePath!));
+      SoLoud.instance.play(_audioSource!);
     } catch (e) {
       debugPrint('[AudioService] Error playing click sound: $e');
     }
@@ -152,12 +149,16 @@ class AudioService {
   /// - 5 uT to Threshold: Slow pacing ticks (from 1.5 seconds down to 300ms)
   /// - Above Threshold: Rapid alarm-like ticking (from 300ms down to 45ms)
   void updateSignalStrength(double deltaMag, double threshold) {
-    if (!_isEnabled || !_initialized) return;
+    if (!_isEnabled || !_initialized) {
+      return;
+    }
 
     if (deltaMag < 4.0) {
       // Too weak to beep, stop the timer
-      _tickerTimer?.cancel();
-      _tickerTimer = null;
+      if (_tickerTimer != null) {
+        _tickerTimer?.cancel();
+        _tickerTimer = null;
+      }
       return;
     }
 
@@ -174,10 +175,12 @@ class AudioService {
       intervalMs = 1500.0 - (rangeRatio * 1200.0); // Down to 300ms
     }
 
-    _currentIntervalMs = intervalMs;
-
-    // Restart timer with the updated interval if it significantly changes
-    _startTickerLoop();
+    // Only restart timer if the target interval changed significantly to prevent ticker spam
+    if ((intervalMs - _currentIntervalMs).abs() > 15.0 ||
+        _tickerTimer == null) {
+      _currentIntervalMs = intervalMs;
+      _startTickerLoop();
+    }
   }
 
   void _startTickerLoop() {
@@ -196,6 +199,8 @@ class AudioService {
 
   void dispose() {
     _tickerTimer?.cancel();
-    _audioPlayer?.dispose();
+    if (_audioSource != null) {
+      SoLoud.instance.disposeSource(_audioSource!);
+    }
   }
 }

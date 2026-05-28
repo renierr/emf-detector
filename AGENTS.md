@@ -54,7 +54,7 @@ For detailed math vector formulas, synthesized WAV headers, stream simulation va
 - Service: `SensorService` detects actual hardware availability. On failure or timeout, it automatically starts a virtual generator timer (33ms interval) yielding values matching preset environments (Mains AC Wire, Neodymium Magnet, Walk Drift).
 
 ### 3. Acoustic Geiger Synthesis
-- Service: `AudioService` synthesizes a 20ms sine wave click at 1800Hz with steep exponential decay directly to a temporary WAV file, avoiding manual asset configuration. The click is re-triggered at intervals matching EMF delta strength.
+- Service: `AudioService` synthesizes a 200ms sine wave click at 1800Hz with steep exponential decay directly to a temporary WAV file, avoiding manual asset configuration. The click is re-triggered at intervals matching EMF delta strength.
 
 ### 4. Cyberpunk Styling System
 - Color schemes are absolute Dark Mode (`#07080D` scaffold) with Neon Cyan (`#00F2FE`), Emerald (`#00FF87`), warning Amber (`#FFD200`), and alert Cyberpunk Red/Pink (`#FF0055`).
@@ -69,7 +69,7 @@ For detailed math vector formulas, synthesized WAV headers, stream simulation va
 | `sensors_plus` | Accesses physical hardware Magnetometer |
 | `wakelock_plus` | Keeps device screen awake during scanning operations |
 | `google_fonts` | Cylindrically fetches digital Orbitron and Outfit fonts |
-| `audioplayers` | Low-latency audio playback for the simulated Geiger ticks |
+| `flutter_soloud` | Ultra-low latency, high-performance C++ audio engine for Geiger ticks |
 
 ---
 

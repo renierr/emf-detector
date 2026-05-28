@@ -129,8 +129,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       _buildHeader(state),
                       const SizedBox(height: 24),
 
-                      // Warning alert banner (only displayed on spikes)
-                      if (isWarning) _buildCableDetectedBanner(),
+                      // Real-time status / alert banner (always displayed to prevent layout jumping)
+                      _buildCableDetectedBanner(state.isScanning, isWarning),
 
                       // Primary Gauge Panel
                       Center(
@@ -291,45 +291,64 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  Widget _buildCableDetectedBanner() {
-    return Container(
+  Widget _buildCableDetectedBanner(bool isScanning, bool isWarning) {
+    final Color themeColor;
+    final IconData icon;
+    final String title;
+    final String subtitle;
+
+    if (!isScanning) {
+      themeColor = Colors.white.withValues(alpha: 0.15);
+      icon = Icons.sensors_off_outlined;
+      title = 'SCANNER PAUSED';
+      subtitle = 'Tap START SCANNING below to search for hidden wall cables.';
+    } else if (isWarning) {
+      themeColor = const Color(0xFFFF0055);
+      icon = Icons.warning_amber_rounded;
+      title = 'CABLE / METAL DETECTED';
+      subtitle = 'Strong local magnetic field anomaly detected inside wall.';
+    } else {
+      themeColor = const Color(0xFF00FF87);
+      icon = Icons.check_circle_outline;
+      title = 'SCANNING ACTIVE - SYSTEM STABLE';
+      subtitle = 'No major electromagnetic anomalies detected.';
+    }
+
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 250),
       margin: const EdgeInsets.only(bottom: 20),
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
-        color: const Color(0xFFFF0055).withValues(alpha: 0.12),
+        color: themeColor.withValues(alpha: 0.06),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: const Color(0xFFFF0055).withValues(alpha: 0.4),
+          color: themeColor.withValues(alpha: 0.3),
           width: 1.5,
         ),
       ),
       child: Row(
         children: [
-          const Icon(
-            Icons.warning_amber_rounded,
-            color: Color(0xFFFF0055),
-            size: 24,
-          ),
+          Icon(icon, color: themeColor, size: 24),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'CABLE / METAL DETECTED',
+                  title,
                   style: GoogleFonts.orbitron(
-                    fontSize: 12,
+                    fontSize: 11,
                     fontWeight: FontWeight.bold,
-                    color: const Color(0xFFFF0055),
+                    color: themeColor,
                     letterSpacing: 1.0,
                   ),
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  'Strong local magnetic field anomaly detected inside wall.',
+                  subtitle,
                   style: GoogleFonts.outfit(
                     fontSize: 10,
-                    color: Colors.grey[300],
+                    color: Colors.grey[400],
                   ),
                 ),
               ],

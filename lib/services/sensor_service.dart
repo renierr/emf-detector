@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io' show Platform;
 import 'dart:math';
 import 'package:flutter/foundation.dart';
 import 'package:sensors_plus/sensors_plus.dart';
@@ -36,9 +37,28 @@ class SensorService {
   double _manualSliderZ = 0.0;
   bool _useManualSliders = false;
 
+  /// Returns true if the active platform has magnetometer hardware support.
+  /// Web and desktop platforms (Windows, macOS, Linux) do not support physical magnetometers in Flutter.
+  static bool get isHardwareSupported {
+    if (kIsWeb) return false;
+    try {
+      if (Platform.isWindows || Platform.isMacOS || Platform.isLinux) {
+        return false;
+      }
+    } catch (_) {
+      return false;
+    }
+    return true;
+  }
+
   SensorService() {
-    // Start listening to physical sensor by default if available
-    _startSensorStream();
+    if (!isHardwareSupported) {
+      _useSimulation = true;
+      _currentPreset = SimulationPreset.ambientNoise;
+      _startSimulationStream();
+    } else {
+      _startSensorStream();
+    }
   }
 
   Stream<EmfReading> get emfStream => _streamController.stream;
@@ -63,6 +83,15 @@ class SensorService {
 
   /// Enable or disable simulation mode.
   void setSimulationMode(bool enable) {
+    if (!isHardwareSupported) {
+      // Hardware sensors are not supported on this platform. Force simulation mode.
+      _useSimulation = true;
+      if (_simulationTimer == null) {
+        _startSimulationStream();
+      }
+      return;
+    }
+
     if (_useSimulation == enable) return;
     _useSimulation = enable;
 

@@ -23,8 +23,8 @@ class DetectorState extends ChangeNotifier {
 
   // Alert and feedback settings
   double _warningThreshold = 45.0; // Default threshold in uT
-  bool _soundEnabled = false;
-  bool _hapticsEnabled = false;
+  bool _soundEnabled = true;
+  bool _hapticsEnabled = true;
 
   // Low-pass filter smoothing coefficient (alpha)
   static const double _smoothingFactor = 0.22;
@@ -229,7 +229,7 @@ class DetectorState extends ChangeNotifier {
     final cooldownMs = 600 - (deltaOver * 4.5).round();
 
     if (now.difference(_lastHapticTime).inMilliseconds >= cooldownMs) {
-      HapticFeedback.lightImpact();
+      HapticFeedback.vibrate();
       _lastHapticTime = now;
     }
   }

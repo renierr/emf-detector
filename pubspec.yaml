@@ -37,8 +37,8 @@ dependencies:
   sensors_plus: ^7.0.0
   wakelock_plus: ^1.6.1
   google_fonts: ^8.1.0
-  audioplayers: ^6.6.0
   path_provider: ^2.1.5
+  flutter_soloud: ^4.0.6
 
 dev_dependencies:
   flutter_test:

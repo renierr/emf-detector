@@ -45,31 +45,30 @@ To bypass the need for bundling static sound files (which expands application bu
 
 ### WAV Header Structure (44 Bytes PCM)
 
-The synthesized file is formatted as an **8-bit Mono PCM WAV** with a sample rate of **$11025\,\text{Hz}$**. Duration is exactly **$20\,\text{ms}$** (yielding **$220$ samples**).
+The synthesized file is formatted as an **16-bit Mono PCM WAV** with a sample rate of **$44100\,\text{Hz}$**. Duration is exactly **$200\,\text{ms}$** (yielding **$8820$ samples**).
 
 | Offset (Bytes) | Field Name | Hex / Value (Little Endian) | Description |
 | :--- | :--- | :--- | :--- |
 | **0 - 3** | ChunkID | `52 49 46 46` ("RIFF") | RIFF container header |
-| **4 - 7** | ChunkSize | `00 01 08 00` (256 + 8 = 264) | File size minus 8 bytes |
+| **4 - 7** | ChunkSize | `14 45 00 00` (17676 - 8 = 17668) | File size minus 8 bytes |
 | **8 - 11** | Format | `57 41 56 45` ("WAVE") | WAV format identifier |
 | **12 - 15** | Subchunk1ID | `66 6D 74 20` ("fmt ") | Format subchunk header |
 | **16 - 19** | Subchunk1Size | `10 00 00 00` (16) | Size of fmt subchunk |
 | **20 - 21** | AudioFormat | `01 00` (1) | PCM linear format |
 | **22 - 23** | NumChannels | `01 00` (1) | Mono channel count |
-| **24 - 27** | SampleRate | `11 2B 00 00` (11025) | Sampling rate in Hz |
-| **28 - 31** | ByteRate | `11 2B 00 00` (11025) | Bytes per second (SampleRate * channels * bits/8) |
-| **32 - 33** | BlockAlign | `01 00` (1) | Bytes per sample slice |
-| **34 - 35** | BitsPerSample | `08 00` (8) | 8-bit unsigned PCM |
+| **24 - 27** | SampleRate | `44 AC 00 00` (44100) | Sampling rate in Hz |
+| **28 - 31** | ByteRate | `88 58 01 00` (88200) | Bytes per second (SampleRate * channels * bits/8) |
+| **32 - 33** | BlockAlign | `02 00` (2) | Bytes per sample slice (channels * bits/8) |
+| **34 - 35** | BitsPerSample | `10 00` (16) | 16-bit signed PCM |
 | **36 - 39** | Subchunk2ID | `64 61 74 61` ("data") | Data subchunk header |
-| **40 - 43** | Subchunk2Size | `DC 00 00 00` (220) | Number of audio sample bytes |
+| **40 - 43** | Subchunk2Size | `E8 44 00 00` (17640) | Number of audio sample bytes |
 
 ### Audio Waveform Synthesis Algorithm
 
-The click sound is synthesized by multiplying a high-frequency sine wave with a steep exponential decay envelope to yield a organic " Geiger pop":
-$$y(t) = 128 + 110 \times \exp(-t \times 220.0) \times \sin(2\pi \times 1800.0 \times t)$$
+The click sound is synthesized by multiplying a high-frequency sine wave with a steep exponential decay envelope to yield a organic "Geiger pop":
+$$y(t) = 32767 \times \exp(-t \times 220.0) \times \sin(2\pi \times 1800.0 \times t)$$
 Where:
-* **$128$**: The silence midpoint value for unsigned 8-bit PCM.
-* **$110$**: Amplitude coefficient (leaving padding to avoid clipping distortion).
+* **$32767$**: The peak amplitude for signed 16-bit PCM.
 * **$\exp(-t \times 220.0)$**: Fast exponential decay envelope giving the sound its percussive "pop".
 * **$\sin(2\pi \times 1800.0 \times t)$**: High-frequency carrier wave ($1.8\,\text{kHz}$) giving the tick a metallic bite.
 
