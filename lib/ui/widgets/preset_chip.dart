@@ -1,0 +1,47 @@
+import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
+import '../../services/sensor_service.dart';
+import '../../state/detector_state.dart';
+
+class PresetChip extends StatelessWidget {
+  final DetectorState state;
+  final SimulationPreset preset;
+  final String label;
+
+  const PresetChip({
+    super.key,
+    required this.state,
+    required this.preset,
+    required this.label,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final isSelected = state.currentPreset == preset;
+    return ChoiceChip(
+      label: Text(
+        label,
+        style: GoogleFonts.outfit(
+          fontSize: 10,
+          fontWeight: FontWeight.w600,
+          color: isSelected ? const Color(0xFF07080D) : Colors.grey[300],
+        ),
+      ),
+      selected: isSelected,
+      selectedColor: const Color(0xFFFFD200),
+      backgroundColor: Colors.white.withValues(alpha: 0.04),
+      side: BorderSide(
+        color: isSelected
+            ? const Color(0xFFFFD200)
+            : Colors.white.withValues(alpha: 0.08),
+        width: 1,
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      onSelected: (selected) {
+        if (selected) {
+          state.setSimulationPreset(preset);
+        }
+      },
+    );
+  }
+}
