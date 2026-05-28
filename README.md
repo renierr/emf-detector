@@ -83,6 +83,24 @@ To maintain high performance and buttery-smooth 60+ FPS visualizations, the app 
      flutter run -d windows
      ```
 
+4. **Build a production release:**
+   * **To compile a release APK or App Bundle for Android:**
+     ```bash
+      # Generate standard release APK (located at build/app/outputs/flutter-apk/app-release.apk)
+      flutter build apk --release
+      
+      # Or generate split-per-architecture APKs for smaller download sizes (e.g. arm64-v8a, armeabi-v7a)
+      flutter build apk --split-per-abi
+      
+      # Or compile a release Google Play App Bundle (.aab)
+      flutter build appbundle --release
+     ```
+   * **To compile a standalone release executable for Windows Desktop:**
+     ```bash
+     # Compiles native Windows release binaries (located in build/windows/x64/runner/Release/)
+     flutter build windows --release
+     ```
+
 ### Core Dependencies
 * `sensors_plus`: For accessing mobile magnetometer sensors.
 * `wakelock_plus`: Prevents screen sleep while actively scanning walls.

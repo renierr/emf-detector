@@ -101,4 +101,6 @@ flutter_launcher_icons:
     generate: true
     image_path: "assets/logo/icon.png"
   image_path: "assets/logo/icon.png"
+  adaptive_icon_background: "#07080D"
+  adaptive_icon_foreground: "assets/logo/icon.png"
   min_sdk_android: 21
