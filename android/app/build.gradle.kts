@@ -47,30 +47,12 @@ android {
                 storeFile = signingConfigs.getByName("debug").storeFile
                 storePassword = signingConfigs.getByName("debug").storePassword
             }
-            isV1SigningEnabled = true
-            isV2SigningEnabled = true
-            isV3SigningEnabled = true
         }
     }
 
     buildTypes {
         release {
             signingConfig = signingConfigs.getByName("release")
-        }
-    }
-
-    applicationVariants.all {
-        val variant = this
-        outputs.map { it as com.android.build.gradle.internal.api.BaseVariantOutputImpl }.forEach { output ->
-            val abiName = output.filters.find { it.filterType == "ABI" }?.identifier
-            val buildType = variant.buildType.name
-            val baseName = "EMF-Scanner"
-
-            if (abiName != null) {
-                output.outputFileName = "$baseName-$abiName-$buildType.apk"
-            } else {
-                output.outputFileName = "$baseName-$buildType.apk"
-            }
         }
     }
 }
@@ -84,4 +66,3 @@ kotlin {
 flutter {
     source = "../.."
 }
-
